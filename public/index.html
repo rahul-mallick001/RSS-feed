@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSS Reader</title>
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div id="sidebar-head">
+        <h1>RSS Reader</h1>
+        <form id="add-feed-form">
+          <input type="url" id="feed-url" placeholder="Feed URL..." required>
+          <button type="submit" title="Add feed">+</button>
+        </form>
+        <button id="refresh-all" title="Refresh all feeds">Refresh all</button>
+      </div>
+      <nav id="feed-nav">
+        <a href="#" class="feed-link active" data-filter="all">
+          <span class="feed-name">All items</span>
+          <span class="unread-badge" id="badge-all">0</span>
+        </a>
+        <a href="#" class="feed-link" data-filter="starred">
+          <span class="feed-name">Starred</span>
+        </a>
+      </nav>
+      <ul id="feed-list"></ul>
+    </aside>
+
+    <main id="items-pane">
+      <header id="items-head">
+        <h2 id="items-title">All items</h2>
+        <button id="mark-all-read" title="Mark all as read">Mark all read</button>
+      </header>
+      <ul id="items-list"></ul>
+      <div id="empty-state">No items yet. Add a feed URL on the left.</div>
+    </main>
+
+    <article id="article-pane">
+      <div id="article-empty">Select an item to read.</div>
+      <div id="article-body" hidden>
+        <button id="article-back">Back to list</button>
+        <div id="article-actions">
+          <button class="star-btn">Star</button>
+          <a class="open-link" href="#" target="_blank" rel="noopener noreferrer">Open original</a>
+        </div>
+        <header>
+          <h1 id="article-title"></h1>
+          <div id="article-meta"></div>
+        </header>
+        <div id="article-content"></div>
+      </div>
+    </article>
+  </div>
+
+  <template id="feed-tpl">
+    <a href="#" class="feed-link">
+      <span class="feed-name"></span>
+      <span class="unread-badge">0</span>
+      <button class="feed-delete" title="Remove feed">x</button>
+    </a>
+  </template>
+
+  <template id="item-tpl">
+    <li class="item">
+      <img class="item-thumb" alt="" hidden>
+      <div class="item-main">
+        <div class="item-title"></div>
+        <div class="item-meta"></div>
+      </div>
+    </li>
+  </template>
+
+  <script src="/vendor/katex/katex.min.js"></script>
+  <script src="/vendor/katex/auto-render.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
