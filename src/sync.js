@@ -81,6 +81,7 @@ async function syncFeed(feedRow) {
 
 function normalizeItem(raw) {
   const contentHtml =
+    raw.contentHtml ||
     raw["content:encoded"] ||
     raw["content:encodedSnippet"] ||
     raw.content ||

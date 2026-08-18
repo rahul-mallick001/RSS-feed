@@ -1,6 +1,7 @@
 const net = require("net");
 const dns = require("dns/promises");
 const Parser = require("rss-parser");
+const { fetchApsFeed } = require("./aps");
 
 const parser = new Parser({
   timeout: 20000,
@@ -62,6 +63,10 @@ function isPrivateAddr(addr) {
 }
 
 async function fetchFeed(url, options = {}) {
+  const parsedUrl = new URL(url);
+  if (parsedUrl.hostname === "journals.aps.org") {
+    return fetchApsFeed(parsedUrl);
+  }
   const headers = {
     "User-Agent": "rss-feed-reader/1.0 (+personal use)",
     ...(options.etag ? { "If-None-Match": options.etag } : {}),

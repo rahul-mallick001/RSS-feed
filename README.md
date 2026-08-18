@@ -8,7 +8,8 @@ Personal RSS reader that aggregates feeds from different websites, auto-syncs ne
 - **Auto-sync** — polls every feed on a schedule (default 15 min, configurable), with HTTP conditional GET (`ETag`/`Last-Modified`) so unchanged feeds cost almost nothing
 - **Full-text extraction** — fetches the article page and extracts the main content (Mozilla Readability) when the feed only carries a summary; falls back to feed content on failure
 - **Images** — lead image extracted from the article/og:image, shown as list thumbnail and in the article
-- **Equations** — LaTeX rendered client-side with KaTeX (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`)
+- **Equations** — LaTeX rendered client-side with KaTeX (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`); MathML rendered natively
+- **APS journals** — `journals.aps.org` feeds are Cloudflare-protected, so the app pulls them from the Crossref API instead (abstracts + MathML equations); paste the journal homepage URL, e.g. `https://journals.aps.org/prfluids/`
 - **Unread counts, starred items, mark-all-read**
 - **Safe by default** — all third-party HTML is sanitized; SSRF guard blocks private/localhost feed URLs
 

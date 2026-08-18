@@ -9,6 +9,10 @@ const ALLOWED_TAGS = [
   "figure", "figcaption", "img", "picture", "source",
   "div", "span", "section", "article", "details", "summary",
   "sub", "sup", "mark", "abbr", "cite", "q", "small", "time", "wbr",
+  "math", "semantics", "annotation", "mrow", "mi", "mo", "mn", "msup",
+  "msub", "msubsup", "mfrac", "msqrt", "mroot", "mover", "munder",
+  "munderover", "mtable", "mtr", "mtd", "mspace", "mtext", "mstyle",
+  "mpadded", "mphantom", "mfenced", "menclose",
 ];
 
 const ALLOWED_ATTRS = {
