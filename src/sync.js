@@ -2,6 +2,7 @@ const { getDb } = require("./db");
 const { fetchFeed } = require("./rss");
 const { extractFullText } = require("./extractor");
 const { sanitize } = require("./sanitize");
+const { fetchGraphicalAbstract } = require("./graphical");
 
 const SUMMARY_TRIGGER_LEN = 300;
 
@@ -121,9 +122,22 @@ async function enrichItem(itemId, item) {
   const current = db.prepare("SELECT content_html, summary, image_url FROM items WHERE id = ?").get(itemId);
   const contentHtml = content ? sanitize(content.content) : current.content_html;
   const summary = content && content.excerpt ? sanitize(content.excerpt) : current.summary;
-  const imageUrl = (content && content.image) || current.image_url;
+  let imageUrl = (content && content.image) || current.image_url;
+  if (!imageUrl) {
+    imageUrl = await resolveGraphicalImage(item.link);
+    db.prepare("UPDATE items SET image_attempted = 1 WHERE id = ?").run(itemId);
+  }
   updateEnriched(itemId, contentHtml, summary, imageUrl);
 }
+
+async function resolveGraphicalImage(link) {
+  if (!link || !/^https:\/\/doi\.org\//.test(link)) return null;
+  await sleep(400);
+  const imageUrl = await fetchGraphicalAbstract(link);
+  return imageUrl;
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function updateEnriched(id, contentHtml, summary, imageUrl) {
   getDb().prepare("UPDATE items SET content_html = ?, summary = ?, image_url = ? WHERE id = ?")

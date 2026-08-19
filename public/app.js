@@ -196,8 +196,42 @@ async function openItem(item) {
   content.innerHTML = item.contentHtml || `<p>${esc(item.summary || "No content available.")}</p>`;
   renderMath(content);
 
+  showGraphicalAbstract(item);
+
   $("#article-pane").scrollTop = 0;
   if (window.innerWidth <= 900) $("#app").classList.add("show-article");
+}
+
+async function showGraphicalAbstract(item) {
+  const fig = $("#graphical-abstract");
+  fig.innerHTML = "";
+  fig.hidden = true;
+
+  let url = item.imageUrl;
+  if (!url && !item.imageAttempted) {
+    try {
+      const r = await api(`/api/items/${item.id}/graphical`, { method: "POST" });
+      url = r.imageUrl || null;
+      item.imageUrl = url;
+    } catch {
+      url = null;
+    }
+  }
+  if (!url) return;
+
+  const img = document.createElement("img");
+  img.alt = "Graphical abstract";
+  img.loading = "lazy";
+  img.onerror = () => {
+    fig.hidden = true;
+    fig.innerHTML = "";
+  };
+  img.src = url;
+  const cap = document.createElement("figcaption");
+  cap.textContent = "Graphical abstract";
+  fig.appendChild(img);
+  fig.appendChild(cap);
+  fig.hidden = false;
 }
 
 function renderMath(el) {

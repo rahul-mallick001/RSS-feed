@@ -1,5 +1,6 @@
 const express = require("express");
 const { getDb } = require("../db");
+const { fetchGraphicalAbstract } = require("../graphical");
 
 const router = express.Router();
 
@@ -30,12 +31,14 @@ router.get("/", (req, res) => {
     id: i.id,
     feedId: i.feed_id,
     feedTitle: i.feed_title,
+    feedUrl: i.feed_url,
     title: i.title,
     link: i.link,
     author: i.author,
     pubDate: i.pub_date,
     summary: i.summary,
     imageUrl: i.image_url,
+    imageAttempted: !!i.image_attempted,
     createdAt: i.created_at,
     isRead: !!i.is_read,
     isStarred: !!i.is_starred,
@@ -67,6 +70,25 @@ router.post("/mark-all-read", (req, res) => {
     db.prepare("UPDATE items SET is_read = 1").run();
   }
   res.json({ ok: true });
+});
+
+router.post("/:id/graphical", async (req, res) => {
+  const db = getDb();
+  const item = db.prepare("SELECT * FROM items WHERE id = ?").get(req.params.id);
+  if (!item) return res.status(404).json({ error: "item not found" });
+
+  if (item.image_url) return res.json({ imageUrl: item.image_url });
+
+  let imageUrl = null;
+  if (!item.image_attempted) {
+    try {
+      imageUrl = await fetchGraphicalAbstract(item.link);
+    } catch {
+      imageUrl = null;
+    }
+    db.prepare("UPDATE items SET image_url = ?, image_attempted = 1 WHERE id = ?").run(imageUrl, item.id);
+  }
+  res.json({ imageUrl });
 });
 
 module.exports = router;

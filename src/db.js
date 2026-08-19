@@ -53,6 +53,11 @@ function initSchema(d) {
     CREATE INDEX IF NOT EXISTS idx_items_feed_pub ON items(feed_id, pub_date DESC);
     CREATE INDEX IF NOT EXISTS idx_items_pub ON items(pub_date DESC);
   `);
+
+  const cols = d.prepare("PRAGMA table_info(items)").all().map((c) => c.name);
+  if (!cols.includes("image_attempted")) {
+    d.exec("ALTER TABLE items ADD COLUMN image_attempted INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 module.exports = { getDb, DB_PATH };
