@@ -10,6 +10,7 @@ Personal RSS reader that aggregates feeds from different websites, auto-syncs ne
 - **Images** — lead image extracted from the article/og:image, shown as list thumbnail and in the article
 - **Equations** — LaTeX rendered client-side with KaTeX (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`); MathML rendered natively
 - **APS journals** — `journals.aps.org` feeds are Cloudflare-protected, so the app pulls them from the Crossref API instead (abstracts + MathML equations); paste the journal homepage URL, e.g. `https://journals.aps.org/prfluids/`
+- **Cambridge Core** — same Cloudflare wall; `www.cambridge.org` RSS links are auto-detected and served from Crossref (the product id is resolved once via reader proxy, then cached)
 - **Unread counts, starred items, mark-all-read**
 - **Safe by default** — all third-party HTML is sanitized; SSRF guard blocks private/localhost feed URLs
 
