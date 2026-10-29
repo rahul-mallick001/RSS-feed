@@ -90,7 +90,7 @@ function normalizeItem(raw) {
     raw.summary ||
     raw["rss:description"] ||
     "";
-  const summary = contentHtml ? null : (raw.summary || raw.contentSnippet || "");
+  const summary = (raw.summary || raw.contentSnippet || "").slice(0, 2000);
 
   const plainLen = stripTags(contentHtml).trim().length;
 
@@ -170,4 +170,21 @@ async function syncAllFeeds() {
   return results;
 }
 
-module.exports = { syncFeed, syncAllFeeds };
+async function backfillImages(limit = 10) {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT id, link FROM items
+    WHERE image_url IS NULL AND image_attempted = 0 AND link LIKE 'https://doi.org/%'
+    ORDER BY COALESCE(pub_date, created_at) DESC
+    LIMIT ?
+  `).all(limit);
+
+  for (const row of rows) {
+    const imageUrl = await resolveGraphicalImage(row.link);
+    db.prepare("UPDATE items SET image_url = ?, image_attempted = 1 WHERE id = ?")
+      .run(imageUrl, row.id);
+  }
+  return rows.length;
+}
+
+module.exports = { syncFeed, syncAllFeeds, backfillImages, resolveGraphicalImage };

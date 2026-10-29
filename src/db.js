@@ -2,15 +2,21 @@ const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
-const DB_PATH = path.join(DATA_DIR, "rss.db");
+function getDataDir() {
+  return process.env.RSS_DATA_DIR || path.join(__dirname, "..", "data");
+}
+
+function getDbPath() {
+  return path.join(getDataDir(), "rss.db");
+}
 
 let db;
 
 function getDb() {
   if (!db) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    db = new Database(DB_PATH);
+    const dataDir = getDataDir();
+    fs.mkdirSync(dataDir, { recursive: true });
+    db = new Database(path.join(dataDir, "rss.db"));
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     initSchema(db);
@@ -58,6 +64,30 @@ function initSchema(d) {
   if (!cols.includes("image_attempted")) {
     d.exec("ALTER TABLE items ADD COLUMN image_attempted INTEGER NOT NULL DEFAULT 0");
   }
+
+  backfillSummaries(d);
 }
 
-module.exports = { getDb, DB_PATH };
+function backfillSummaries(d) {
+  const rows = d.prepare(`
+    SELECT id, content_html FROM items
+    WHERE (summary IS NULL OR summary = '') AND content_html IS NOT NULL AND content_html != ''
+  `).all();
+  if (!rows.length) return;
+  const upd = d.prepare("UPDATE items SET summary = ? WHERE id = ?");
+  const tx = d.transaction((list) => {
+    for (const r of list) {
+      const text = String(r.content_html)
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 2000);
+      if (text) upd.run(text, r.id);
+    }
+  });
+  tx(rows);
+}
+
+module.exports = { getDb, getDbPath, getDataDir };

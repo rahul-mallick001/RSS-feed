@@ -14,6 +14,19 @@ function esc(s) {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+function plainText(html) {
+  return String(html ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function fmtDate(ts) {
   if (!ts) return "";
   const d = new Date(ts);
@@ -135,12 +148,67 @@ function renderItems() {
       titleEl.appendChild(star);
     }
 
+    const summaryEl = node.querySelector(".item-summary");
+    const snippet = plainText(item.summary || "").slice(0, 220);
+    if (snippet) {
+      summaryEl.textContent = snippet;
+      summaryEl.hidden = false;
+    } else {
+      summaryEl.hidden = true;
+    }
+
     const meta = node.querySelector(".item-meta");
     const feedTitle = state.filter === "all" ? `${esc(item.feedTitle)} · ` : "";
     meta.textContent = `${feedTitle}${fmtDate(item.pubDate || item.createdAt)}${item.author ? ` · ${item.author}` : ""}`;
 
     li.addEventListener("click", () => openItem(item));
     list.appendChild(node);
+
+    if (!item.imageUrl && !item.imageAttempted) {
+      queueGraphicalImage(item);
+    }
+  }
+  pumpImageQueue();
+}
+
+/* ---------- Graphical image queue ---------- */
+
+const imageQueue = [];
+const queuedIds = new Set();
+let imagePumpRunning = false;
+
+function queueGraphicalImage(item) {
+  if (queuedIds.has(item.id)) return;
+  queuedIds.add(item.id);
+  imageQueue.push(item.id);
+}
+
+async function pumpImageQueue() {
+  if (imagePumpRunning) return;
+  imagePumpRunning = true;
+  try {
+    while (imageQueue.length) {
+      const id = imageQueue.shift();
+      const item = state.items.find((i) => i.id === id);
+      if (!item || item.imageUrl) continue;
+      try {
+        const r = await api(`/api/items/${id}/graphical`, { method: "POST" });
+        if (r.imageUrl) {
+          item.imageUrl = r.imageUrl;
+          item.imageAttempted = true;
+          const row = document.querySelector(`#items-list .item[data-id="${id}"] .item-thumb`);
+          if (row) {
+            row.src = r.imageUrl;
+            row.hidden = false;
+          }
+        }
+      } catch {
+        // skip; server marks attempted
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+  } finally {
+    imagePumpRunning = false;
   }
 }
 
@@ -195,6 +263,17 @@ async function openItem(item) {
   const content = $("#article-content");
   content.innerHTML = item.contentHtml || `<p>${esc(item.summary || "No content available.")}</p>`;
   renderMath(content);
+
+  const abstractEl = $("#article-abstract");
+  const abstractText = plainText(item.summary || "");
+  const contentText = plainText(item.contentHtml || "");
+  const redundant = abstractText && contentText.startsWith(abstractText.slice(0, 120));
+  if (abstractText && !redundant) {
+    $("#article-abstract-text").textContent = abstractText;
+    abstractEl.hidden = false;
+  } else {
+    abstractEl.hidden = true;
+  }
 
   showGraphicalAbstract(item);
 

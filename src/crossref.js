@@ -50,14 +50,15 @@ async function fetchJournalWorks(issn, options = {}) {
     if (!containerTitle && w["container-title"] && w["container-title"][0]) {
       containerTitle = w["container-title"][0];
     }
+    const abstractHtml = jatsToHtml(w.abstract);
     return {
       guid: w.DOI,
       title,
       link: w.URL || `https://doi.org/${w.DOI}`,
       author: authors || null,
       pubDate,
-      contentHtml: jatsToHtml(w.abstract),
-      summary: null,
+      contentHtml: abstractHtml,
+      summary: abstractHtml ? plainText(abstractHtml) : null,
       imageUrl: null,
     };
   });
@@ -85,6 +86,19 @@ function jatsToHtml(jats) {
     .replace(/<\/?[a-zA-Z0-9]+:/g, (m) => (m.startsWith("</") ? "</" : "<"))
     .replace(/<jats:sc>/g, "<span>")
     .replace(/<\/jats:sc>/g, "</span>");
+}
+
+function plainText(html) {
+  return String(html || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 module.exports = { fetchJournalWorks, resolveJournalByTitle, jatsToHtml };

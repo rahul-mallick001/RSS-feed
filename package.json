@@ -2,10 +2,12 @@
   "name": "rss-feed",
   "version": "1.0.0",
   "description": "Personal RSS reader with auto-sync, full-text extraction, images and LaTeX rendering",
-  "main": "server.js",
+  "main": "desktop/main.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node scripts/use-abi.js node && node server.js",
+    "dev": "node scripts/use-abi.js node && node --watch server.js",
+    "desktop": "node scripts/use-abi.js electron && electron .",
+    "dist": "node scripts/use-abi.js electron && electron-builder --win"
   },
   "engines": {
     "node": ">=18"
@@ -20,5 +22,50 @@
     "node-cron": "^4.2.1",
     "rss-parser": "^3.13.0",
     "sanitize-html": "^2.17.0"
+  },
+  "devDependencies": {
+    "electron": "^42.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.rahul.rssfeed",
+    "productName": "RSS Reader",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**/*",
+      "src/**/*",
+      "public/**/*",
+      "server.js",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/build/Release/*.node"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "RSS Reader"
+    }
   }
 }

@@ -215,6 +215,17 @@ body {
   text-overflow: ellipsis;
 }
 
+.item-summary {
+  font-size: 12.5px;
+  color: #4b5563;
+  line-height: 1.45;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .star-flag { color: #f59e0b; margin-left: 4px; }
 
 #empty-state {
@@ -288,6 +299,29 @@ body {
   color: var(--muted);
   text-align: center;
   margin-top: 8px;
+}
+
+#article-abstract {
+  max-width: 800px;
+  margin: 0 0 24px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+}
+
+#article-abstract h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+#article-abstract p {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #1f2937;
 }
 
 #article-actions button, #article-actions a {

@@ -1,23 +1,35 @@
 const { JSDOM } = require("jsdom");
 
 const JINA_BASE = "https://r.jina.ai/";
-const JINA_TIMEOUT = 45000;
-const S2_TIMEOUT = 30000;
+const JINA_TIMEOUT = 22000;
+const S2_TIMEOUT = 15000;
 const JUNK_IMG = /(\.svg|logo|icon|crossmark|creativecommons|arxiv-logo|placeholder|smileybones)/i;
 const JUNK_HOST = ["crossmark-cdn.crossref.org", "doi.org"];
 
 async function fetchGraphicalAbstract(link) {
   if (!link || !/^https:\/\//.test(link)) return null;
 
-  const html = await jinaFetch(link, { format: "html" });
-  if (html) {
-    const url = ogImageFromHtml(html, link);
-    if (url && (await validateImage(url))) return url;
+  const target = await resolveTarget(link);
+  let host = "";
+  try {
+    host = new URL(target).hostname;
+  } catch {
+    host = "";
   }
 
-  const md = await jinaFetch(link, { format: "markdown" });
+  // APS serves a Cloudflare challenge to the reader proxy in HTML mode; the
+  // markdown mode works, so skip the doomed HTML request.
+  if (host !== "journals.aps.org") {
+    const html = await jinaFetch(target, { format: "html" });
+    if (html) {
+      const url = ogImageFromHtml(html, target);
+      if (url && (await validateImage(url))) return url;
+    }
+  }
+
+  const md = await jinaFetch(target, { format: "markdown" });
   if (md) {
-    const url = imageFromMarkdown(md, link);
+    const url = imageFromMarkdown(md, target);
     if (url && (await validateImage(url))) return url;
   }
 
@@ -26,6 +38,25 @@ async function fetchGraphicalAbstract(link) {
     if (url && (await validateImage(url))) return url;
   }
   return null;
+}
+
+/*
+ * Follow doi.org redirects cheaply so the reader proxy is asked for the
+ * publisher page directly (doi.org itself is rate limited there).
+ */
+async function resolveTarget(link) {
+  if (!/^https:\/\/doi\.org\//.test(link)) return link;
+  try {
+    const res = await fetch(link, {
+      method: "HEAD",
+      redirect: "follow",
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(12000),
+    });
+    return res.url || link;
+  } catch {
+    return link;
+  }
 }
 
 async function validateImage(url) {
