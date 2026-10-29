@@ -82,6 +82,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: "RSS Reader",
+    icon: path.join(__dirname, "..", "build", "icon.png"),
     backgroundColor: "#f6f7f9",
     autoHideMenuBar: true,
     webPreferences: {

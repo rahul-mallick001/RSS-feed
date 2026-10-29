@@ -1,6 +1,6 @@
 {
   "name": "rss-feed",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Personal RSS reader with auto-sync, full-text extraction, images and LaTeX rendering",
   "main": "desktop/main.js",
   "scripts": {
@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "electron": "^42.0.0",
-    "electron-builder": "^26.18.0"
+    "electron-builder": "^26.18.0",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.5"
   },
   "build": {
     "appId": "com.rahul.rssfeed",
@@ -38,6 +40,7 @@
       "desktop/**/*",
       "src/**/*",
       "public/**/*",
+      "build/icon.png",
       "server.js",
       "package.json"
     ],
@@ -45,6 +48,7 @@
       "node_modules/better-sqlite3/build/Release/*.node"
     ],
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -65,7 +69,10 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "RSS Reader"
+      "shortcutName": "RSS Reader",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     }
   }
 }
